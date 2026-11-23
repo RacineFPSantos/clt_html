@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranking 2030: candidatos da esquerda</title>
+<meta name="description" content="Vote no candidato à Presidência em 2030 e veja o ranking ao vivo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f5f4;--surface:#fff;--ink:#13201f;--muted:#52625f;--line:#d3dcda;
+  --accent:#0d5c4b;--accent-soft:#dcefea;--alert:#a3341f;--alert-soft:#f7e3de;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header{padding:40px 0 24px;border-bottom:1px solid var(--line)}
+.kicker{font:700 12px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+h1{font:900 clamp(28px,6vw,44px)/1.05 var(--display);margin:0 0 12px}
+.lede{color:var(--muted);margin:0}
+h2{font:700 22px var(--display);margin:32px 0 6px}
+.hint{color:var(--muted);font-size:15px;margin:0 0 16px}
+.notice{background:var(--alert-soft);color:var(--alert);border-radius:8px;padding:10px 14px;font:500 14px var(--display);margin:20px 0 0}
+.notice[hidden]{display:none}
+.opts{display:grid;gap:10px;list-style:none;padding:0;margin:0}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font:700 17px var(--display);color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{cursor:default;opacity:.7}
+.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.av{flex:none;width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:900 15px var(--display)}
+.vote-btn{margin-top:16px;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:14px 22px;font:700 17px var(--display);cursor:pointer}
+.vote-btn:disabled{background:#9db5af;cursor:not-allowed}
+.msg{min-height:1.5em;margin:12px 0 0;font:500 15px var(--display)}
+.msg.err{color:var(--alert)}
+.rank{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.row-top{display:flex;justify-content:space-between;gap:12px;font:700 16px var(--display)}
+.pos{color:var(--accent);margin-right:8px}
+.num{color:var(--muted);font-weight:500;white-space:nowrap}
+.bar{height:10px;background:var(--accent-soft);border-radius:99px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .5s}
+.total{font:500 14px var(--display);color:var(--muted);margin:12px 0 0}
+footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <p class="kicker">Enquete aberta</p>
+  <h1>Quem deve ser o candidato à Presidência em 2030?</h1>
+  <p class="lede">Campo da esquerda, da centro-esquerda e da pseudo esquerda. Escolha um nome e acompanhe o ranking.</p>
+  <p class="notice" id="demo" hidden>Modo demonstração: os votos ficam só neste navegador. Configure o Supabase para o ranking ser compartilhado.</p>
+</div></header>
+
+<main class="wrap">
+  <h2>Seu voto</h2>
+  <p class="hint" id="hint">Um voto por navegador.</p>
+  <ul class="opts" id="opts"></ul>
+  <button class="vote-btn" id="send" disabled>Votar</button>
+  <p class="msg" id="msg" role="status"></p>
+
+  <h2>Ranking</h2>
+  <ol class="rank" id="rank"></ol>
+  <p class="total" id="total"></p>
+</main>
+
+<footer><div class="wrap">Enquete informal, sem valor estatístico. Qualquer pessoa pode votar, e não há verificação de identidade.</div></footer>
+
+<script>
+// ===== CONFIGURAÇÃO =====
+// Cole aqui a URL do projeto e a chave pública (anon) do Supabase.
+// Deixe vazio para usar o modo demonstração.
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+
+// Os ids precisam ser idênticos aos do check da tabela em supabase.sql.
+const OPTIONS = [
+  {id:"flavio-dino",   name:"Flávio Dino"},
+  {id:"jones-manoel",  name:"Jones Manoel"},
+  {id:"haddad",        name:"Haddad"},
+  {id:"dilma",         name:"Dilma"},
+  {id:"elias-jabbour", name:"Elias Jabbour"},
+  {id:"rui-costa",     name:"Rui Costa"},
+  {id:"hertz-dias",    name:"Hertz Dias"},
+  {id:"samara",        name:"Samara"}
+];
+// ========================
+
+const LIVE = SUPABASE_URL && SUPABASE_ANON_KEY;
+const KEY_VOTED = "ranking2030:voted", KEY_DEMO = "ranking2030:demo";
+const $ = id => document.getElementById(id);
+let selected = null;
+
+// localStorage pode estar bloqueado (modo privado etc.): cai para memória.
+const mem = {};
+const store = {
+  get(k){try{const v=localStorage.getItem(k); if(v!==null) return v;}catch(e){} return k in mem ? mem[k] : null;},
+  set(k,v){mem[k]=v; try{localStorage.setItem(k,v)}catch(e){}}
+};
+const initials = n => n.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase();
+const hasVoted = () => !!store.get(KEY_VOTED);
+
+function api(path, opts={}){
+  return fetch(SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/" + path, {
+    ...opts,
+    headers:{apikey:SUPABASE_ANON_KEY, Authorization:"Bearer "+SUPABASE_ANON_KEY,
+             "Content-Type":"application/json", ...(opts.headers||{})}
+  });
+}
+
+async function loadCounts(){
+  const counts = Object.fromEntries(OPTIONS.map(o=>[o.id,0]));
+  if(LIVE){
+    const r = await api("ranking?select=option_id,votes");
+    if(!r.ok) throw new Error("Falha ao carregar o ranking");
+    (await r.json()).forEach(x=>{ if(x.option_id in counts) counts[x.option_id]=x.votes; });
+  } else {
+    try{ Object.assign(counts, JSON.parse(store.get(KEY_DEMO)||"{}")); }catch(e){}
+  }
+  return counts;
+}
+
+async function sendVote(id){
+  if(LIVE){
+    const r = await api("votes", {method:"POST", headers:{Prefer:"return=minimal"}, body:JSON.stringify({option_id:id})});
+    if(!r.ok) throw new Error("Não foi possível registrar o voto");
+  } else {
+    let c={}; try{ c=JSON.parse(store.get(KEY_DEMO)||"{}"); }catch(e){}
+    c[id]=(c[id]||0)+1; store.set(KEY_DEMO, JSON.stringify(c));
+  }
+}
+
+function renderOptions(){
+  const ul=$("opts"); ul.innerHTML="";
+  const locked=hasVoted();
+  OPTIONS.forEach(o=>{
+    const li=document.createElement("li");
+    const b=document.createElement("button");
+    b.type="button"; b.className="opt"; b.disabled=locked;
+    b.setAttribute("aria-pressed", selected===o.id);
+    b.innerHTML='<span class="av" aria-hidden="true"></span><span></span>';
+    b.firstChild.textContent=initials(o.name); b.lastChild.textContent=o.name;
+    b.onclick=()=>{selected=o.id; renderOptions();};
+    li.appendChild(b); ul.appendChild(li);
+  });
+  $("send").disabled = locked || !selected;
+  if(locked) $("hint").textContent="Você já votou neste navegador. Obrigado!";
+}
+
+function renderRank(counts){
+  const total=Object.values(counts).reduce((a,b)=>a+b,0);
+  const sorted=[...OPTIONS].sort((a,b)=>counts[b.id]-counts[a.id] || a.name.localeCompare(b.name,"pt-BR"));
+  const max=Math.max(1,...Object.values(counts));
+  const ol=$("rank"); ol.innerHTML="";
+  sorted.forEach((o,i)=>{
+    const n=counts[o.id], pct=total?Math.round(n*100/total):0;
+    const li=document.createElement("li"); li.className="row";
+    li.innerHTML='<div class="row-top"><span><span class="pos"></span><span class="nm"></span></span><span class="num"></span></div><div class="bar"><i></i></div>';
+    li.querySelector(".pos").textContent=(i+1)+"º";
+    li.querySelector(".nm").textContent=o.name;
+    li.querySelector(".num").textContent=n+(n===1?" voto":" votos")+" ("+pct+"%)";
+    li.querySelector("i").style.width=(n*100/max)+"%";
+    ol.appendChild(li);
+  });
+  $("total").textContent=total+(total===1?" voto no total":" votos no total");
+}
+
+async function refresh(){
+  try{ renderRank(await loadCounts()); }
+  catch(e){ $("msg").className="msg err"; $("msg").textContent=e.message; }
+}
+
+$("send").onclick=async()=>{
+  if(!selected||hasVoted()) return;
+  $("send").disabled=true; $("msg").className="msg"; $("msg").textContent="Enviando…";
+  try{
+    await sendVote(selected);
+    store.set(KEY_VOTED, selected);
+    $("msg").textContent="Voto registrado!";
+    renderOptions(); await refresh();
+  }catch(e){
+    $("msg").className="msg err"; $("msg").textContent=e.message; $("send").disabled=false;
+  }
+};
+
+if(!LIVE) $("demo").hidden=false;
+renderOptions(); refresh();
+if(LIVE) setInterval(refresh, 15000);
+</script>
+</body>
+</html>
