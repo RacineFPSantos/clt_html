@@ -74,8 +74,8 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
 // ===== CONFIGURAÇÃO =====
 // Cole aqui a URL do projeto e a chave pública (anon) do Supabase.
 // Deixe vazio para usar o modo demonstração.
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://ncfiztyeuzymqpbjuggn.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_VbtzIZ_nZMto8BgZLwkibA_sMjPsFvU";
 
 // Os ids precisam ser idênticos aos do check da tabela em supabase.sql.
 const OPTIONS = [
@@ -105,11 +105,11 @@ const initials = n => n.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase(
 const hasVoted = () => !!store.get(KEY_VOTED);
 
 function api(path, opts={}){
-  return fetch(SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/" + path, {
-    ...opts,
-    headers:{apikey:SUPABASE_ANON_KEY, Authorization:"Bearer "+SUPABASE_ANON_KEY,
-             "Content-Type":"application/json", ...(opts.headers||{})}
-  });
+  const h = {apikey:SUPABASE_ANON_KEY, "Content-Type":"application/json", ...(opts.headers||{})};
+  // Chaves antigas (anon) são JWT e vão também em Authorization.
+  // As novas (sb_publishable_...) não são JWT e vão só em apikey.
+  if(SUPABASE_ANON_KEY.startsWith("eyJ")) h.Authorization = "Bearer "+SUPABASE_ANON_KEY;
+  return fetch(SUPABASE_URL.replace(/\/$/,"") + "/rest/v1/" + path, {...opts, headers:h});
 }
 
 async function loadCounts(){
