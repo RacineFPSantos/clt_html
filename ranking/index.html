@@ -37,6 +37,9 @@ h2{font:700 22px var(--display);margin:32px 0 6px}
 .name{font:900 22px/1.15 var(--display);margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .meta{margin:0 0 14px;font:500 15px/1.35 var(--display);color:var(--ink)}
 .meta b{display:block;margin-bottom:3px;font:700 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.meta ul{margin:0;padding-left:18px}
+.meta li{margin:2px 0;padding-left:2px}
+.meta li::marker{color:var(--accent)}
 .meta .tbd{font-style:italic;color:var(--muted)}
 .vote-btn{margin:8px 18px 18px;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px;font:700 16px var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
 .vote-btn:hover:not(:disabled){background:#0a4a3c}
@@ -154,6 +157,22 @@ function metaLine(label, value){
   return p;
 }
 
+// Divide "A, B e C" em tópicos, com a primeira letra de cada um em maiúscula.
+function metaList(label, value){
+  if(!value) return metaLine(label, "");
+  const p=document.createElement("div"); p.className="meta";
+  const b=document.createElement("b"); b.textContent=label;
+  const ul=document.createElement("ul");
+  value.split(/,\s*|\s+e\s+/).forEach(t=>{
+    t=t.trim(); if(!t) return;
+    const li=document.createElement("li");
+    li.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+    ul.appendChild(li);
+  });
+  p.append(b, ul);
+  return p;
+}
+
 function renderCards(){
   const ul=$("cards"); ul.innerHTML="";
   const mine=votedId();
@@ -172,7 +191,7 @@ function renderCards(){
 
     const info=document.createElement("div"); info.className="info";
     const h=document.createElement("h3"); h.className="name"; h.textContent=o.name;
-    info.append(h, metaLine("Partido", o.party), metaLine("Alinhamento", o.alignment), metaLine("Corrente", o.ideology));
+    info.append(h, metaLine("Partido", o.party), metaLine("Alinhamento", o.alignment), metaList("Corrente", o.ideology));
 
     const btn=document.createElement("button");
     btn.type="button"; btn.className="vote-btn";
