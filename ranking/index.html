@@ -76,7 +76,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px}
   <p class="total" id="total"></p>
 </main>
 
-<footer><div class="wrap">Enquete informal, sem valor estatístico. Qualquer pessoa pode votar, e não há verificação de identidade.</div></footer>
+<footer><div class="wrap">* Última filiação partidária: PSB.<br>Enquete informal, sem valor estatístico. Qualquer pessoa pode votar, e não há verificação de identidade.</div></footer>
 
 <script>
 // ===== CONFIGURAÇÃO =====
@@ -89,14 +89,14 @@ const SUPABASE_ANON_KEY = "sb_publishable_VbtzIZ_nZMto8BgZLwkibA_sMjPsFvU";
 //   alignment: alinhamento político (deixe "" para mostrar "a definir").
 // Os ids precisam ser idênticos aos do check da tabela em supabase.sql.
 const OPTIONS = [
-  {id:"flavio-dino",   name:"Flávio Dino",   photo:"fotos/flavio-dino.jpg",   party:"", alignment:""},
-  {id:"jones-manoel",  name:"Jones Manoel",  photo:"fotos/jones-manoel.png",  party:"", alignment:""},
-  {id:"haddad",        name:"Haddad",        photo:"fotos/haddad.jpg",        party:"", alignment:""},
-  {id:"dilma",         name:"Dilma",         photo:"fotos/dilma.jpg",         party:"", alignment:""},
-  {id:"elias-jabbour", name:"Elias Jabbour", photo:"fotos/elias-jabbour.jpg", party:"", alignment:""},
-  {id:"rui-costa",     name:"Rui Costa",     photo:"fotos/rui-costa.jpg",     party:"", alignment:""},
-  {id:"hertz-dias",    name:"Hertz Dias",    photo:"fotos/hertz-dias.jpg",    party:"", alignment:""},
-  {id:"samara",        name:"Samara",        photo:"fotos/samara.jpg",        party:"", alignment:""}
+  {id:"flavio-dino",   name:"Flávio Dino",   photo:"fotos/flavio-dino.jpg",   party:"Sem partido (PSB*)", alignment:""},
+  {id:"jones-manoel",  name:"Jones Manoel",  photo:"fotos/jones-manoel.png",  party:"PSOL", alignment:""},
+  {id:"haddad",        name:"Haddad",        photo:"fotos/haddad.jpg",        party:"PT", alignment:""},
+  {id:"dilma",         name:"Dilma",         photo:"fotos/dilma.jpg",         party:"PT", alignment:""},
+  {id:"elias-jabbour", name:"Elias Jabbour", photo:"fotos/elias-jabbour.jpg", party:"PCdoB", alignment:""},
+  {id:"rui-costa",     name:"Rui Costa",     photo:"fotos/rui-costa.jpg",     party:"PT", alignment:""},
+  {id:"hertz-dias",    name:"Hertz Dias",    photo:"fotos/hertz-dias.jpg",    party:"PSTU", alignment:""},
+  {id:"samara",        name:"Samara Martins", photo:"fotos/samara.jpg",     party:"UP", alignment:""}
 ];
 // ========================
 
