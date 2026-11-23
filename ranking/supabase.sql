@@ -4,7 +4,7 @@ create table public.votes (
   id         bigint generated always as identity primary key,
   option_id  text not null check (option_id in (
     'flavio-dino','jones-manoel','haddad','dilma',
-    'elias-jabbour','rui-costa','hertz-dias','samara'
+    'elias-jabbour','camilo-santana','rui-costa-pimenta','hertz-dias','samara'
   )),
   created_at timestamptz not null default now()
 );
